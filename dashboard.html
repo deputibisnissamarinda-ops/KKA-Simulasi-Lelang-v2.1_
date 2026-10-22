@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#003399">
+<title>KKA Simulasi Lelang</title>
+<link rel="icon" type="image/png" sizes="128x128" href="grid.png">
+<link rel="icon" type="image/png" sizes="512x512" href="grid (1).png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="lib/xlsx-shim.js"></script>
+<script src="lib/xlsx.full.min.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="style.css">
+
+<body>
+
+<header>
+  <img class="logo" src="grid.png" alt="" aria-hidden="true">
+  <div>
+    <h1>KKA Simulasi Lelang <span class="ver-badge">v2.1</span></h1>
+    <div class="sub">Simulasi Perhitungan Lelang KDP Kendari 1</div>
+  </div>
+  <div class="hdr-meta">
+    <div id="metaTanggal"></div>
+    <div id="metaOutlet"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== SETUP VIEW (onboarding) ===== -->
+  <div class="setup-view" id="setupView">
+    <div class="setup-intro">
+      <h2>KKA Simulasi Lelang</h2>
+      <button class="link-btn" id="btnImportStateSetup" type="button" title="Lewati import Excel/CSV, langsung pulihkan dari file backup .json">📂 Restore State</button>
+    </div>
+    <div class="setup-grid">
+      <div class="card">
+        <h2><span class="step-no">1</span> Import Daftar BJDPL (Excel) <span class="opt-tag req-tag">wajib</span></h2>
+        <div class="drop" id="dropXls">
+          <div><strong>Drop your Excel file here</strong></div>
+          <div class="hint">MIS - Detail BJDPL</div>
+          <button class="pick" type="button">Pilih file Excel</button>
+          <input type="file" accept=".xlsx,.xls" id="fileXls">
+        </div>
+        <div class="file-ok" id="okXls"></div>
+        <div class="file-err" id="errXls"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step-no">2</span> Import Detail BJ (CSV Passion) <span class="opt-tag">opsional</span></h2>
+        <div class="drop" id="dropCsv">
+          <div><strong>Drop one or more CSV files here</strong></div>
+          <div class="hint">Passion - Inquiry Kredit Masalah Gadai (71210)</div>
+          <button class="pick" type="button">Pilih file CSV</button>
+          <input type="file" accept=".csv,.txt" id="fileCsv" multiple>
+        </div>
+        <div class="file-ok" id="okCsv"></div>
+        <div class="file-err" id="errCsv"></div>
+      </div>
+
+      <div class="card" id="hargaCard">
+        <!-- <h2><span class="step-no">3</span> Harga Dasar Lelang Emas (Rp)</h2> -->
+        <div class="fld-group-title">HDLE</div>
+        <div class="harga-row">
+          <div class="bar"><label for="hPerhiasan">Perhiasan Emas</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hPerhiasan" type="text" inputmode="numeric" value="2.225.000" title="Klik untuk mengubah harga dasar"></div>
+          <div class="bar"><label for="hLM">Logam Mulia</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hLM" type="text" inputmode="numeric" value="2.364.436" title="Klik untuk mengubah harga dasar"></div>
+          <div class="bar"><label for="hLantakan">Lantakan Emas</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hLantakan" type="text" inputmode="numeric" value="2.270.804" title="Klik untuk mengubah harga dasar"></div>
+          <div class="bar"><label for="hTabungan">Tabungan Emas</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hTabungan" type="text" inputmode="numeric" value="2.364.436" title="Klik untuk mengubah harga dasar"></div>
+        </div>
+        <div class="harga-note">Input HDLE Passion - Menu Harga Dasar Lelang (26010)</div>
+
+        <div class="stl-group">
+          <div class="fld-group-title stl">STL</div>
+          <div class="harga-row">
+            <div class="bar stl-bar"><label for="hSTLPerhiasan">Perhiasan Emas</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hSTLPerhiasan" type="text" inputmode="numeric" value="0" title="STL per gram 24K — Perhiasan Emas"></div>
+            <div class="bar stl-bar"><label for="hSTLLM">Logam Mulia</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hSTLLM" type="text" inputmode="numeric" value="0" title="STL per gram 24K — Logam Mulia / Emas Batangan"></div>
+            <div class="bar stl-bar"><label for="hSTLLantakan">Lantakan Emas</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hSTLLantakan" type="text" inputmode="numeric" value="0" title="STL per gram 24K — Lantakan Emas"></div>
+            <div class="bar stl-bar"><label for="hSTLTabungan">Tabungan Emas</label><span class="edit-ico" aria-hidden="true">&#9998;</span><input id="hSTLTabungan" type="text" inputmode="numeric" value="0" title="STL per gram 24K — Tabungan Emas"></div>
+          </div>
+          <div class="stl-note">STL bersifat opsional &mdash; untuk mengecek potensi Minta Tambah.</div>
+        </div>
+      </div>
+    </div>
+    <div class="setup-actions">
+      <button class="btn ghost danger-txt" id="btnClearAllSetup" type="button" title="Hapus seluruh data CSV, Excel, dan input taksiran manual">&#128465; Hapus Semua Data</button>
+      <button class="btn primary" id="btnMasuk" type="button">Lanjut ke Simulasi &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ===== MAIN VIEW (dashboard) ===== -->
+  <div class="main-view" id="mainView" hidden>
+    <div class="main-topbar">
+      <div class="side closed" id="hdleSide">
+        <div class="harga-bar" id="hargaBarSlot"></div>
+        <div class="side-actions">
+          <div class="side-actions-title">Menu Data</div>
+          <button type="button" class="menu-item" id="btnUbahData">&#9881; Ubah Data / Import Ulang</button>
+          <div class="menu-divider"></div>
+          <button type="button" class="menu-item" id="btnExportState">&#8681; Backup Data (.json)</button>
+          <div class="menu-divider"></div>
+          <button type="button" class="menu-item danger-strong" id="btnClearAllData" title="Hapus seluruh data CSV, Excel, dan input taksiran manual, lalu kembali ke layar awal">&#128465; Reset Data</button>
+        </div>
+        <input type="file" accept=".json" id="fileState" hidden>
+      </div>
+
+      <div class="main-col">
+        <div class="col-bar">
+          <button class="btn menu-toggle" id="dataMenuBtn" type="button" aria-expanded="false" title="Tampilkan / sembunyikan panel HDLE & Menu Data">&#9776; Menu Data</button>
+          <div class="seg-toggle" id="viewModeToggle">
+            <button type="button" class="seg-btn active" data-mode="lelang">Mode Lelang</button>
+            <button type="button" class="seg-btn" data-mode="mt">Mode Minta Tambah</button>
+            <button type="button" class="seg-btn" data-mode="nasabah">Grouping Nasabah</button>
+          </div>
+        </div>
+
+    <!-- ===== Summary ===== -->
+    <div class="summary" id="summary" hidden>
+      <div class="sum-card clickable" id="cardRekening" role="button" tabindex="0" title="Klik untuk lihat rincian per Produk & Keterangan Lelang dan populasi kredit per karat & berat"><span class="drill-ico" aria-hidden="true">&#10530;</span><div class="lbl">Jumlah Rekening</div><div class="val" id="sRek">0</div></div>
+      <div class="sum-card"><div class="lbl">Total Pinjaman (UP)</div><div class="val" id="sUp">0</div></div>
+      <div class="sum-card"><div class="lbl">Total Kewajiban</div><div class="val" id="sKew">0</div></div>
+      <div class="sum-card gold" id="cardHdle"><div class="lbl" id="lblHdle">Total Penjualan Lelang</div><div class="val" id="sHdle">0</div></div>
+      <div class="sum-card gold" id="cardMin"><div class="lbl" id="lblMin">Total Minimal Penjualan</div><div class="val" id="sMin">0</div></div>
+      <div class="sum-card red" id="cardSelisih"><div class="lbl" id="lblSelisih">Selisih</div><div class="val" id="sSelisih">0</div></div>
+    </div>
+
+    <!-- ===== Toolbar ===== -->
+    <div class="toolbar-card" id="toolbar" hidden>
+      <div class="toolbar-row search-row">
+        <input type="search" id="q" placeholder="Cari no kontrak / nama nasabah / produk&hellip;">
+        <label class="deep-search-toggle" title="Cari keterangan BJ pada rincian tiap kredit (lebih lambat untuk data besar)">
+          <input type="checkbox" id="deepSearch"> Deep Search
+        </label>
+        <span class="count-pill">Tampil <b id="cShown">0</b> / <b id="cTotal">0</b> rekening</span>
+        <div class="action-group">
+          <button class="btn" id="btnSurat" type="button" title="Buat Surat Pemberitahuan (Jatuh Tempo / Kewajiban sebelum Lelang) dari kredit yang ditandai">&#9993; Surat</button>
+          <button class="btn" id="btnBast" type="button" title="Cetak Berita Acara Serah Terima barang jaminan untuk lelang">&#128203; BA Serah Terima</button>
+          <button class="btn" id="btnManual" type="button">&#9998; Taksiran Manual</button>
+          <button class="btn" id="btnExportPdf" type="button">&#8681; PDF</button>
+          <button class="btn primary" id="btnExport" type="button">&#8681; Excel</button>
+        </div>
+      </div>
+      <div class="toolbar-row grp-row" id="grpBar" hidden>
+        <label class="grp-fld">Akumulasi UP per nasabah
+          <select id="grpUpPreset">
+            <option value="all">Semua</option>
+            <option value="10">&gt; 10 juta</option>
+            <option value="25">&gt; 25 juta</option>
+            <option value="50">&gt; 50 juta</option>
+            <option value="100">&gt; 100 juta</option>
+            <option value="250">&gt; 250 juta</option>
+            <option value="500">&gt; 500 juta</option>
+            <option value="custom">Rentang kustom&hellip;</option>
+          </select></label>
+        <span class="grp-custom" id="grpUpCustom" hidden>
+          <input type="text" id="grpUpMin" inputmode="numeric" placeholder="dari (Rp)"> s.d.
+          <input type="text" id="grpUpMax" inputmode="numeric" placeholder="sampai (Rp)">
+        </span>
+        <label class="grp-fld">Urutkan
+          <select id="grpSort">
+            <option value="up">Akumulasi UP terbesar</option>
+            <option value="n">Jumlah kredit terbanyak</option>
+            <option value="nama">Nama nasabah (A-Z)</option>
+          </select></label>
+        <button class="pill-btn" type="button" id="grpExpandAll">&#9662; Buka Semua</button>
+        <button class="pill-btn" type="button" id="grpCollapseAll">&#9652; Tutup Semua</button>
+        <label class="chk-inline grp-opt"><input type="checkbox" id="grpShowBj"> Tampilkan rincian barang jaminan</label>
+        <span class="grp-hint">Nama sama tapi orang berbeda? Ubah <b>Kelompok</b> pada nomor kredit untuk memisahkannya.</span>
+      </div>
+      <div class="toolbar-row filter-row">
+        <div class="msel-group" id="filterGroup"></div>
+        <span id="drillChipSlot"></span>
+        <span class="filter-actions">
+          <button class="pill-btn pill-warn" id="btnCollapseAll" type="button" hidden title="Tutup seluruh rincian barang jaminan yang sedang terbuka (Esc)"></button>
+          <button class="pill-btn pill-danger" id="btnClearFilter" type="button" hidden>&#10005; Hapus Filter</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- ===== Table ===== -->
+    <div class="tbl-wrap">
+      <table id="grpTbl" class="grp-tbl" hidden></table>
+      <table id="tbl" hidden>
+        <thead>
+          <tr>
+            <th>No</th><th>No Kontrak</th><th>Customer</th><th>Product</th>
+            <th>Tgl Kredit</th><th>Tgl Cut Off</th><th class="num">Usia BJDPL</th>
+            <th class="num">UP</th><th class="num">Sewa Modal</th><th class="num">Kewajiban</th>
+            <th>Rubrik</th><th>Gol</th>
+            <th class="num lelang-col">Harga HDLE</th><th class="num lelang-col">Minimal Penjualan</th>
+            <th class="lelang-col">KET</th>
+            <th class="num lelang-col">Maks SM</th><th class="num lelang-col">% Turun</th><th class="num lelang-col">% Maks Turun</th>
+            <th class="num lelang-col">Maksimal Penurunan</th><th class="num lelang-col">Harga Permintaan</th>
+            <th class="lelang-col">Keterangan Lelang</th><th class="num lelang-col">Kekurangan</th>
+            <th class="num mt-col">UP Tambah</th><th class="num mt-col">UP Baru</th>
+            <th class="num mt-col">Nominal MT</th><th class="mt-col">Ket MT</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td class="lbl" colspan="7">Total</td>
+            <td class="num" id="tUp"></td><td class="num" id="tSm"></td><td class="num" id="tKew"></td>
+            <td></td><td></td>
+            <td class="num lelang-col" id="tHdle"></td><td class="num lelang-col" id="tMin"></td><td class="lelang-col"></td>
+            <td class="lelang-col"></td><td class="lelang-col"></td><td class="lelang-col"></td><td class="lelang-col"></td>
+            <td class="num lelang-col" id="tHp"></td><td class="lelang-col"></td><td class="num lelang-col" id="tKur"></td>
+            <td class="num mt-col"></td><td class="num mt-col" id="tUpBaru"></td>
+            <td class="num mt-col" id="tMtNom"></td><td class="mt-col"></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="empty" id="empty">
+        <p><b>Belum ada data.</b></p>
+        <p style="margin-top:6px">Kembali ke langkah setup untuk import data.</p>
+      </div>
+    </div>
+
+    <p class="disclaimer"><b>DISCLAIMER:</b> Perhitungan simulasi ini bersifat estimasi, harap tetap melakukan verifikasi ulang. Minimal penjualan = kewajiban &times; 1,02 (bea lelang 2%). Harga permintaan minimum menutupi UP &times; 1,02. Klik baris kontrak untuk melihat / menyesuaikan rincian karat &amp; berat.</p>
+      </div><!-- /main-col -->
+    </div><!-- /main-topbar -->
+  </div>
+
+  <footer>Built by Hamdee &middot; Inspired by Esra&rsquo;s original Excel macro</footer>
+</div>
+
+<!-- ===== Modal opsi PDF ===== -->
+<div class="modal-back" id="pdfModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pdfTitle">
+    <h3 id="pdfTitle">Export PDF</h3>
+    <label class="chk" id="optGrpDetailWrap" hidden><input type="checkbox" id="optGrpDetail">
+      <span>Lampirkan detail nomor kredit per nasabah<br><small style="color:var(--sub)">Default hanya rekap ringkas per nasabah (portrait). Jika dicentang, ditambahkan lampiran landscape berisi seluruh nomor kredit tiap nasabah.</small></span></label>
+    <label class="chk"><input type="checkbox" id="optRincian">
+      <span id="optRincianTxt">Sertakan rincian karat &amp; berat per kontrak<br><small style="color:var(--sub)">Barang jaminan dicetak langsung di bawah baris kontraknya. Item yang disesuaikan ditandai *</small></span></label>
+    <label class="chk"><input type="checkbox" id="optFiltered" checked>
+      <span>Hanya data hasil filter yang aktif</span></label>
+    <div class="row-btn">
+      <button class="btn" type="button" id="pdfCancel">Batal</button>
+      <button class="btn primary" type="button" id="pdfGo">Buat PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal opsi Excel ===== -->
+<div class="modal-back" id="xlsModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="xlsTitle">
+    <h3 id="xlsTitle">Export Excel</h3>
+    <label class="chk"><input type="checkbox" id="optXlsDetail">
+      <span>Sertakan detail barang jaminan<br><small style="color:var(--sub)">Ditambahkan di sheet terpisah &ldquo;DETAIL BJ&rdquo; &mdash; satu baris per barang, kolom No &amp; No Kontrak mengacu ke kredit di sheet SIMULASI.</small></span></label>
+    <label class="chk"><input type="checkbox" id="optXlsFiltered" checked>
+      <span>Hanya data hasil filter yang aktif<br><small style="color:var(--sub)">Jika tidak dicentang, seluruh rekening diekspor tanpa memperhatikan filter &amp; pencarian.</small></span></label>
+    <div class="row-btn">
+      <button class="btn" type="button" id="xlsCancel">Batal</button>
+      <button class="btn primary" type="button" id="xlsGo">Buat Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal pivot Rekening/UP per Produk x Keterangan Lelang ===== -->
+<div class="modal-back" id="pivotModal">
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="pivotTitle">
+    <div class="modal-head">
+      <h3 id="pivotTitle">Rekening &amp; UP per Produk &times; Keterangan Lelang</h3>
+      <button class="mini-btn" id="pivotClose" type="button" aria-label="Tutup">&#10005;</button>
+    </div>
+    <div class="tab-bar" id="pivotTabs" role="tablist">
+      <button type="button" class="tab-btn active" data-tab="lelang" role="tab">Produk &times; Ket. Lelang</button>
+      <button type="button" class="tab-btn" data-tab="populasi" role="tab">Populasi per Karatase</button>
+    </div>
+
+    <div class="pv-panel" id="pvTabLelang">
+      <p class="pivot-hint">Data mengikuti filter yang sedang aktif. Klik sel untuk menerapkan filter Produk + Keterangan Lelang tersebut ke tabel utama.</p>
+      <div class="seg-toggle" id="pivotModeToggle">
+        <button type="button" class="seg-btn active" data-mode="n">Jumlah Rekening</button>
+        <button type="button" class="seg-btn" data-mode="up">Total UP</button>
+      </div>
+      <div class="pivot-wrap"><table class="pivot-tbl" id="pivotTbl"></table></div>
+    </div>
+
+    <div class="pv-panel" id="pvTabPopulasi" hidden>
+      <p class="pivot-hint">Rekap seluruh barang jaminan yang akan dilelang per <b>karatase</b> &mdash; total gram, nilai jual, dan dari kredit mana asalnya. Mengikuti filter yang sedang aktif. Klik baris untuk melihat kredit mana saja yang punya barang pada karat tersebut (tabel utama otomatis terfilter).</p>
+      <div class="pop-ctl">
+        <label class="pop-fld" title="Menyaring per barang jaminan; batas bawah termasuk, batas atas tidak">Rentang berat per barang
+          <select id="popRange"></select>
+        </label>
+      </div>
+      <div class="mm-info" id="popInfo"></div>
+      <div class="pivot-wrap"><table class="pivot-tbl pop-tbl" id="popTbl"></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal input taksiran manual (kontrak tanpa detail BJ) ===== -->
+<div class="modal-back" id="manualModal">
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="manualTitle">
+    <div class="modal-head">
+      <h3 id="manualTitle">Input Taksiran Manual &mdash; Kontrak Tanpa Detail BJ</h3>
+      <button class="mini-btn" id="manualClose" type="button" aria-label="Tutup">&#10005;</button>
+    </div>
+    <p class="pivot-hint">Untuk kontrak yang tidak punya rincian barang jaminan (mis. hanya ada file Excel BJDPL tanpa CSV Passion). Isi <b>karat</b> &amp; <b>berat</b> &mdash; HDLE dihitung otomatis: (karat / 24) &times; harga dasar per gram &times; berat.</p>
+
+    <div class="mm-bar">
+      <input type="search" id="manualQ" placeholder="Cari no kontrak / customer&hellip;">
+      <div class="mm-quick">
+        <span class="mm-quick-lbl">Isi cepat:</span>
+        <select id="mmBulkKat">
+          <option>PERHIASAN EMAS</option>
+          <option>LOGAM MULIA</option>
+          <option>EMAS BATANGAN</option>
+          <option>LANTAKAN EMAS</option>
+          <option>TABUNGAN EMAS</option>
+        </select>
+        <input type="number" id="mmBulkKarat" step="1" min="6" max="24" placeholder="karat (6–24)">
+        <input type="number" id="mmBulkBerat" step="0.0001" min="0" placeholder="berat (g)">
+        <label class="chk-inline"><input type="checkbox" id="mmBulkOnlyEmpty" checked> hanya yang kosong</label>
+        <button class="btn" type="button" id="mmBulkApply">Terapkan ke baris tampil</button>
+      </div>
+    </div>
+    <div class="mm-info" id="manualInfo"></div>
+
+    <div class="mm-wrap"><table class="mm-tbl" id="manualTbl"></table></div>
+
+    <div class="row-btn">
+      <button class="btn ghost danger-txt" type="button" id="mmClearAll">Hapus Semua Input Manual</button>
+      <button class="btn primary" type="button" id="manualDone">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal resume sesi sebelumnya ===== -->
+<div class="modal-back" id="resumeModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resumeTitle">
+    <h3 id="resumeTitle">Lanjutkan Sesi Sebelumnya?</h3>
+    <p class="resume-desc">Ditemukan data simulasi yang tersimpan otomatis di perangkat ini.</p>
+    <div class="resume-stats">
+      <div class="resume-stat"><div class="resume-stat-val" id="rsRek">0</div><div class="resume-stat-lbl">Rekening</div></div>
+      <div class="resume-stat"><div class="resume-stat-val" id="rsAdj">0</div><div class="resume-stat-lbl">Disesuaikan</div></div>
+    </div>
+    <div class="resume-meta" id="resumeMeta"></div>
+    <div class="row-btn">
+      <button class="btn ghost" id="resumeReset" type="button">Mulai Baru</button>
+      <button class="btn primary" id="resumeGo" type="button">Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal Surat Pemberitahuan Jatuh Tempo (surat.js) ===== -->
+<div class="modal-back" id="suratModal">
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="suratTitle">
+    <div class="modal-head">
+      <h3 id="suratTitle">Surat Pemberitahuan Nasabah</h3>
+      <button class="mini-btn" id="suratClose" type="button" aria-label="Tutup">&#10005;</button>
+    </div>
+    <p class="pivot-hint">Surat dibuat dari kredit yang <b>ditandai</b> di tabel utama (centang kolom paling kiri, atau ketik nama / no kredit di kolom cari lalu tekan <b>Enter</b>). Isian bertanda <b class="req">*</b> wajib diisi.</p>
+
+    <div class="sj-jenis">
+      <span class="sj-jenis-lbl">Jenis Surat</span>
+      <div class="seg-toggle" id="sjJenisToggle">
+        <button type="button" class="seg-btn active" data-jenis="jt" title="Format Surat Pemberitahuan Jatuh Tempo + SLIK">Pemberitahuan Jatuh Tempo + SLIK</button>
+        <button type="button" class="seg-btn" data-jenis="lelang" title="Format I. Surat Pemberitahuan Kewajiban Nasabah sebelum Pelaksanaan Lelang">Pemberitahuan Kewajiban sebelum Lelang</button>
+      </div>
+      <span class="sj-jenis-desc" id="sjJenisDesc"></span>
+    </div>
+
+    <div class="sj-group">
+      <div class="sj-group-title">Informasi Kantor Cabang <small>&mdash; wajib diisi, tersimpan otomatis</small></div>
+      <div class="sj-form">
+        <label class="sj-fld sj-span2">Nama Pemimpin Cabang <i class="req">*</i><input type="text" id="sjPimpinan" data-label="Nama Pemimpin Cabang"></label>
+        <label class="sj-fld sj-span2">Nama Cabang <i class="req">*</i><input type="text" id="sjCabang" placeholder="Kendari" data-label="Nama Cabang"></label>
+        <label class="sj-fld">Kode Cabang <i class="req">*</i><input type="text" id="sjKodeCabang" placeholder="11105" data-label="Kode Cabang"></label>
+        <label class="sj-fld">No. HP / WA <i class="req">*</i><input type="tel" id="sjHp" placeholder="0812xxxxxxxx" data-label="No. HP"></label>
+        <label class="sj-fld sj-span4">Alamat Cabang <i class="req">*</i><input type="text" id="sjAlamat" placeholder="Jl. Ahmad Yani No. 10, Kel. Bende, Kec. Kadia" data-label="Alamat Cabang"></label>
+        <label class="sj-fld sj-span2">Kota/Kabupaten <i class="req">*</i><input type="text" id="sjKota" placeholder="Kendari" data-label="Kota/Kabupaten"></label>
+      </div>
+    </div>
+
+    <div class="sj-group">
+      <div class="sj-group-title">Data Surat</div>
+      <div class="sj-form">
+        <label class="sj-fld">No. Urut Awal <i class="req">*</i><input type="text" id="sjNomorStart" inputmode="numeric" placeholder="1" data-label="No. Urut Awal"></label>
+        <label class="sj-fld">Tanggal Surat <i class="req">*</i><input type="date" id="sjTglSurat" data-label="Tanggal Surat"></label>
+        <label class="sj-fld">Batas Penyelesaian <i class="req">*</i><input type="date" id="sjTglBatas" data-label="Batas Penyelesaian"></label>
+        <div class="sj-fld sj-span3">Format Nomor Surat<div class="sj-nomor-prev" id="sjNomorPrev"></div></div>
+      </div>
+    </div>
+
+    <div class="sj-bar">
+      <div class="seg-toggle" id="sjModeToggle">
+        <button type="button" class="seg-btn active" data-mode="kredit">Per No Kredit</button>
+        <button type="button" class="seg-btn" data-mode="nasabah">Per Nasabah (gabung)</button>
+      </div>
+      <div class="mm-info" id="sjInfo"></div>
+    </div>
+
+    <div class="mm-wrap"><table class="mm-tbl sj-tbl" id="sjTbl"></table></div>
+
+    <div class="row-btn">
+      <button class="btn ghost danger-txt" type="button" id="sjClearMarks">Hapus Semua Tanda</button>
+      <button class="btn" type="button" id="sjCancel">Tutup</button>
+      <button class="btn primary" type="button" id="sjGo">Generate PDF</button>
+    </div>
+  </div>
+</div>
+
+<script src="mt.js"></script>
+<script src="app.js"></script>
+<!-- ===== Modal Berita Acara Serah Terima Barang Jaminan (bast.js) ===== -->
+<div class="modal-back" id="bastModal">
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="bastTitle">
+    <div class="modal-head">
+      <h3 id="bastTitle">Berita Acara Serah Terima Barang Jaminan</h3>
+      <button class="mini-btn" id="bastClose" type="button" aria-label="Tutup">&#10005;</button>
+    </div>
+    <p class="pivot-hint">Serah terima barang jaminan untuk pelaksanaan lelang. Isian bertanda <b class="req">*</b> wajib diisi; data pihak &amp; tempat tersimpan otomatis.</p>
+
+    <div class="bast-scroll">
+      <div class="sj-group">
+        <div class="sj-group-title">Tanggal &amp; Tempat</div>
+        <div class="sj-form">
+          <label class="sj-fld sj-span2">Nomor Berita Acara <small>(opsional)</small><input type="text" id="bsNomor"></label>
+          <label class="sj-fld sj-span2">Tanggal Serah Terima <i class="req">*</i><input type="date" id="bsTanggal" data-label="Tanggal Serah Terima"></label>
+          <span class="sj-span2"></span>
+          <label class="sj-fld sj-span6">Tempat Serah Terima <i class="req">*</i><input type="text" id="bsTempat" placeholder="Kantor PT Pegadaian (Persero) Cabang Kendari, Jl. ..." data-label="Tempat"></label>
+        </div>
+      </div>
+
+      <div class="bast-pihak">
+        <div class="sj-group">
+          <div class="sj-group-title">Pihak Pertama <small>&mdash; yang menyerahkan</small></div>
+          <div class="sj-form bast-form">
+            <label class="sj-fld">Nama <i class="req">*</i><input type="text" id="bsP1Nama" data-label="Nama Pihak Pertama"></label>
+            <label class="sj-fld">NIK <i class="req">*</i><input type="text" id="bsP1Nik" data-label="NIK Pihak Pertama"></label>
+            <label class="sj-fld">Jabatan <i class="req">*</i><input type="text" id="bsP1Jabatan" data-label="Jabatan Pihak Pertama"></label>
+            <label class="sj-fld">Unit Kerja <i class="req">*</i><input type="text" id="bsP1Instansi" data-label="Unit Kerja Pihak Pertama"></label>
+          </div>
+        </div>
+        <div class="sj-group">
+          <div class="sj-group-title">Pihak Kedua <small>&mdash; yang menerima</small></div>
+          <div class="sj-form bast-form">
+            <label class="sj-fld">Nama <i class="req">*</i><input type="text" id="bsP2Nama" data-label="Nama Pihak Kedua"></label>
+            <label class="sj-fld">NIK <i class="req">*</i><input type="text" id="bsP2Nik" data-label="NIK Pihak Kedua"></label>
+            <label class="sj-fld">Jabatan <i class="req">*</i><input type="text" id="bsP2Jabatan" data-label="Jabatan Pihak Kedua"></label>
+            <label class="sj-fld">Unit Kerja <i class="req">*</i><input type="text" id="bsP2Instansi" placeholder="mis. Balai Lelang / Unit Lelang" data-label="Unit Kerja Pihak Kedua"></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="sj-group">
+        <div class="sj-group-title">Yang Menyaksikan <small>&mdash; opsional, maksimal 3 orang; baris tanpa nama tidak dicetak</small></div>
+        <div class="sj-form bs-saksi-form">
+          <span class="bs-saksi-no">1.</span>
+          <label class="sj-fld">Nama<input type="text" id="bsS1Nama" data-label="Nama Saksi 1"></label>
+          <label class="sj-fld">NIK<input type="text" id="bsS1Nik"></label>
+          <label class="sj-fld">Jabatan<input type="text" id="bsS1Jabatan"></label>
+          <label class="sj-fld">Unit Kerja<input type="text" id="bsS1Unit"></label>
+          <span class="bs-saksi-no">2.</span>
+          <label class="sj-fld">Nama<input type="text" id="bsS2Nama" data-label="Nama Saksi 2"></label>
+          <label class="sj-fld">NIK<input type="text" id="bsS2Nik"></label>
+          <label class="sj-fld">Jabatan<input type="text" id="bsS2Jabatan"></label>
+          <label class="sj-fld">Unit Kerja<input type="text" id="bsS2Unit"></label>
+          <span class="bs-saksi-no">3.</span>
+          <label class="sj-fld">Nama<input type="text" id="bsS3Nama" data-label="Nama Saksi 3"></label>
+          <label class="sj-fld">NIK<input type="text" id="bsS3Nik"></label>
+          <label class="sj-fld">Jabatan<input type="text" id="bsS3Jabatan"></label>
+          <label class="sj-fld">Unit Kerja<input type="text" id="bsS3Unit"></label>
+        </div>
+      </div>
+
+      <div class="sj-bar">
+        <div class="seg-toggle" id="bsSrcToggle">
+          <button type="button" class="seg-btn active" data-src="tandai">Kredit Ditandai</button>
+          <button type="button" class="seg-btn" data-src="filter">Hasil Filter Aktif</button>
+        </div>
+        <label class="chk-inline bs-detail-opt" title="Rincian barang jaminan dicetak di bawah tiap nomor kredit pada lampiran"><input type="checkbox" id="bsDetail"> Lampirkan detail barang jaminan</label>
+        <div class="mm-info" id="bsInfo"></div>
+      </div>
+      <div class="bast-rekap" id="bsRekap"></div>
+    </div>
+
+    <div class="row-btn">
+      <button class="btn" type="button" id="bsCancel">Tutup</button>
+      <button class="btn primary" type="button" id="bsGo">Cetak PDF</button>
+    </div>
+  </div>
+</div>
+
+<script src="grouping.js"></script>
+<script src="surat.js"></script>
+<script src="bast.js"></script>
+
+</body>
+</html>

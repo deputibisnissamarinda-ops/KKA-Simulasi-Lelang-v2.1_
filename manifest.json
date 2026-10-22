@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "KKA Simulasi Lelang v2.1",
+  "version": "2.1.0",
+  "description": "This extension is used to open the BJDPL simulation page.",
+  "author": "Esra & Hamdee - KDP Kendari 1",
+  "action": {
+    "default_title": "KKA Simulasi Lelang v2.1",
+    "default_icon": {
+      "128": "grid.png"
+    }
+  },
+  "icons": {
+    "128": "grid.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "https://sso-passion.pegadaian.co.id/*",
+    "https://sso-syariah.pegadaian.co.id/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://sso-passion.pegadaian.co.id/*",
+        "https://sso-syariah.pegadaian.co.id/*"
+      ],
+      "js": ["content-passion.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
